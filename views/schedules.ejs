@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Train Schedules</title>
+    <link rel="stylesheet" href="/css/nav.css" />
+    <link rel="stylesheet" href="/css/schedules.css" />
+</head>
+<body>
+
+    <%- include('partials/navbar', { page: 'schedules' }) %>
+
+    <div style="padding: 24px; max-width: 800px; margin: 0 auto;">
+        <h2>🚆 Train Timetable</h2>
+        <br>
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background-color: #f2f2f2; border-bottom: 2px solid #ccc;">
+                    <th style="padding: 10px;">Train Name</th>
+                    <th style="padding: 10px;">Departure</th>
+                    <th style="padding: 10px;">Destination</th>
+                    <th style="padding: 10px;">Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 10px;">Subarna Express</td>
+                    <td style="padding: 10px;">Dhaka</td>
+                    <td style="padding: 10px;">Chittagong</td>
+                    <td style="padding: 10px;">16:30</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 10px;">Parabat Express</td>
+                    <td style="padding: 10px;">Dhaka</td>
+                    <td style="padding: 10px;">Sylhet</td>
+                    <td style="padding: 10px;">06:20</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 10px;">Ekota Express</td>
+                    <td style="padding: 10px;">Dhaka</td>
+                    <td style="padding: 10px;">Panchagarh</td>
+                    <td style="padding: 10px;">10:15</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 10px;">Tista Express</td>
+                    <td style="padding: 10px;">Dhaka</td>
+                    <td style="padding: 10px;">Dewanganj</td>
+                    <td style="padding: 10px;">07:30</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>
