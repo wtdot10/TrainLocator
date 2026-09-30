@@ -6,26 +6,27 @@ const StationSchema = new mongoose.Schema({
         latitude: { type: Number, required: true },
         longitude: { type: Number, required: true }
     },
-    scheduledArrivalTime: { type: String, required: true }, // Format "HH:mm" e.g., "07:30"
-    sequenceOrder: { type: Number, required: true } // 1 for 1st station, 2 for 2nd, etc.
+    scheduledArrivalTime: { type: String, required: true },
+    sequenceOrder: { type: Number, required: true }
 });
 
 const TrainSchema = new mongoose.Schema({
-    trainName: { type: String, required: true, unique: true },
+    trainNumber: { type: String, required: true, unique: true }, // e.g., "705", "706"
+    trainName: { type: String, required: true },                 // e.g., "Balaka Express"
     departure: { type: String, required: true },
     destination: { type: String, required: true },
-    color: { type: String, default: 'purple' },
+    departureTime: { type: String, required: true },
+    color: { type: String, default: '#800080' },
+    
+    stations: [StationSchema],
 
-    stations: [StationSchema], // Station sequence list
-
-    // Calculated dynamic state
     calculatedDelayMinutes: { type: Number, default: 0 },
     nextStation: { type: String, default: 'Pending' },
     lastKnownLocation: {
-        latitude: Number,
-        longitude: Number,
-        speed: Number,
-        updatedAt: Date
+        latitude: { type: Number },
+        longitude: { type: Number },
+        speed: { type: Number, default: 0 },
+        updatedAt: { type: Date }
     }
 }, { timestamps: true });
 

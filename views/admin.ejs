@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin - Manage Train Routes</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="stylesheet" href="/css/nav.css" />
+</head>
+<body>
+  <%- include('partials/navbar', { page: 'admin' }) %>
+
+    <div class="admin-container">
+        <h2>🛠️ Station & Train Route Administration</h2>
+
+        <!-- SECTION 1: Add Station to Master DB -->
+        <div class="card">
+            <h3>📍 Add New Station to Master Library</h3>
+            <form id="master-station-form" onsubmit="addMasterStation(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Station Name:</label>
+                        <input type="text" id="m-name" placeholder="e.g. Mymensingh Jn" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Station Code:</label>
+                        <input type="text" id="m-code" placeholder="e.g. MSH">
+                    </div>
+                    <div class="form-group">
+                        <label>Latitude:</label>
+                        <input type="number" step="any" id="m-lat" placeholder="24.7471" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Longitude:</label>
+                        <input type="number" step="any" id="m-lng" placeholder="90.4203" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-secondary">Add to Station DB</button>
+            </form>
+        </div>
+
+        <!-- SECTION 2: Create Train -->
+        <div class="card">
+            <h3>➕ Create New Train</h3>
+            <form id="create-train-form" onsubmit="createTrain(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Train Number / ID:</label>
+                        <input type="text" id="new-num" placeholder="e.g. 705" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Train Name:</label>
+                        <input type="text" id="new-name" placeholder="e.g. Balaka Express" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Route Color:</label>
+                        <input type="color" id="new-color" value="#800080" style="height: 38px;">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Departure City:</label>
+                        <input type="text" id="new-dept" placeholder="Dhaka" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Destination City:</label>
+                        <input type="text" id="new-dest" placeholder="Mymensingh" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Departure Time:</label>
+                        <input type="time" id="new-time" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">Create Train</button>
+            </form>
+        </div>
+
+        <!-- SECTION 3: Manage Train Route Stops -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>🚉 Configure Train Route Stops</h3>
+                <button id="delete-btn" class="btn btn-danger" style="display: none;" onclick="deleteTrain()">🗑️ Delete Train</button>
+            </div>
+            <br>
+            <label>Select Train:</label>
+            <select id="train-select" onchange="loadTrainRoute()">
+                <option value="">-- Select Train --</option>
+                <% trains.forEach(train => { %>
+                    <option value="<%= train._id %>"><%= train.trainName %> [<%= train.trainNumber || 'N/A' %>] (<%= train.departure %> ➔ <%= train.destination %>)</option>
+                <% }) %>
+            </select>
+
+            <hr style="margin: 20px 0;">
+
+            <form id="route-form" onsubmit="saveRoute(event)" style="display: none;">
+                <h4>Station Stops</h4>
+                <p><small>Select station from dropdown to auto-fill GPS coordinates.</small></p>
+                <br>
+                
+                <div id="stations-container"></div>
+
+                <br>
+                <button type="button" class="btn btn-secondary" onclick="addStationRow()">+ Add Station Stop</button>
+                <button type="submit" class="btn">💾 Save Route Updates</button>
+            </form>
+        </div>
+    </div>
+
+  <script src="/js/adminScript.js"></script>
+</body>
+</html>

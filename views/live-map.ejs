@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Route</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        body { margin: 0; padding: 0; display: flex; height: 100vh; font-family: Arial, sans-serif; }
+        #map { flex: 1; height: 100%; }
+        #sidebar { width: 340px; background: #f8fafc; border-left: 1px solid #cbd5e1; overflow-y: auto; padding: 15px; }
+
+        .station-card {
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            background: #ffffff;
+            border-left: 4px solid #2563eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .station-card.skipped {
+            border-left-color: #94a3b8;
+            opacity: 0.6;
+        }
+
+        .station-title { font-weight: bold; font-size: 0.95rem; color: #0f172a; }
+        .station-title.skipped { text-decoration: line-through; color: #64748b; }
+        
+        .badge-stop { background: #dbeafe; color: #1e40af; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        .badge-skip { background: #f1f5f9; color: #64748b; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; }
+
+        /* Custom Leaflet Markers */
+        .marker-stop {
+            background-color: #2563eb;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 4px rgba(0,0,0,0.4);
+        }
+
+        .marker-skip {
+            background-color: #94a3b8;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <div id="sidebar">
+        <h3><%= train.trainName %></h3>
+        <p><b>Train No:</b> <%= train.trainNumber %></p>
+        <hr>
+        <h4>Route Stoppages</h4>
+
+        <div id="routeList">
+            <% route.forEach(function(station) { %>
+                <div class="station-card <%= station.isSkipped ? 'skipped' : 'active' %>">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="station-title <%= station.isSkipped ? 'skipped' : '' %>">
+                            <%= station.stationName %>
+                        </span>
+                        <% if (station.isSkipped) { %>
+                            <span class="badge-skip">NO STOP</span>
+                        <% } else { %>
+                            <span class="badge-stop">STOPPAGE</span>
+                        <% } %>
+                    </div>
+                    <small style="color: #64748b;">
+                        <%= station.isSkipped ? 'Skipped Station' : 'Arrival: ' + station.scheduledArrivalTime %>
+                    </small>
+                </div>
+            <% }); %>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script id="route-data" type="application/json"><%- JSON.stringify(route).replace(/</g, '\\u003c') %></script>
+    <script>
+        const routeData = JSON.parse(document.getElementById('route-data').textContent);
+
+        // Initialize map centered on Bangladesh railway section
+        const map = L.map('map').setView([24.3, 90.4], 9);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        const trackCoordinates = [];
+
+        // Loop through all route stations and render on Map
+        routeData.forEach((station) => {
+            const latLng = [station.location.latitude, station.location.longitude];
+            trackCoordinates.push(latLng);
+
+            // Differentiate stoppage stations vs non-stop stations
+            const isStop = !station.isSkipped;
+            const markerClass = isStop ? 'marker-stop' : 'marker-skip';
+            const markerRadius = isStop ? 14 : 8;
+
+            const stationIcon = L.divIcon({
+                className: markerClass,
+                iconSize: [markerRadius, markerRadius],
+                iconAnchor: [markerRadius / 2, markerRadius / 2]
+            });
+
+            const popupContent = `
+                <div style="font-family: sans-serif;">
+                    <h4 style="margin:0; ${!isStop ? 'text-decoration: line-through; color: #64748b;' : ''}">
+                        ${station.stationName}
+                    </h4>
+                    <p style="margin: 5px 0 0 0; font-size: 12px;">
+                        ${isStop 
+                            ? `<b style="color:#2563eb;">Scheduled Stoppage</b><br>Time: ${station.scheduledArrivalTime}` 
+                            : `<span style="color:#64748b;">No Stoppage (Skipped)</span>`}
+                    </p>
+                </div>
+            `;
+
+            L.marker(latLng, { icon: stationIcon })
+                .addTo(map)
+                .bindPopup(popupContent);
+        });
+
+        // Draw rail line connecting all stations
+        if (trackCoordinates.length > 0) {
+            const polyline = L.polyline(trackCoordinates, {
+                color: '#2563eb',
+                weight: 4,
+                opacity: 0.85
+            }).addTo(map);
+
+            // Auto-fit zoom to show the entire train route
+            map.fitBounds(polyline.getBounds(), { padding: [30, 30] });
+        }
+    </script>
+</body>
+</html>

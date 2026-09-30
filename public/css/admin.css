@@ -1,0 +1,11 @@
+.admin-container { max-width: 900px; margin: 20px auto; padding: 20px; font-family: sans-serif; }
+.card { background: #f9f9f9; padding: 15px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 20px; }
+.form-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 5px; }
+.form-row { display: flex; gap: 10px; }
+.form-row .form-group { flex: 1; }
+input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+.station-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+.station-row input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }        .btn { padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+.btn-danger { background: #dc3545; }
+.btn-success { background: #28a745; }
+.btn-secondary { background: #6c757d; }

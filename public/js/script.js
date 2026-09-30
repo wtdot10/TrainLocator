@@ -90,7 +90,7 @@ document.querySelectorAll("#trainList li").forEach(item => {
         selectedTrain = item.textContent.trim();
         searchInput.value = selectedTrain;
         trainList.style.display = "none";
-
+        
         startLocationSharing();
     });
 });
