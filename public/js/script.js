@@ -191,6 +191,11 @@ socket.on('passengerCountUpdate', (data) => {
     }
 });
 
+// Request persistent locations from server as soon as connected
+socket.on('connect', () => {
+    socket.emit('getInitialTrainLocations');
+});
+
 function timeAgo(timestamp) {
     if (!timestamp) return "Just now";
     const time = Number(timestamp);

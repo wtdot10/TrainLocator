@@ -1,73 +1,58 @@
 const { getDistanceInMeters, parseTimeToMinutes } = require('./geo');
 
-// Distance threshold to consider a train inside a station (300 meters)
-const STATION_RADIUS_METERS = 300; 
-
-// Minimum speed (km/h) to filter out stationary non-passenger users
-const MIN_TRAIN_SPEED_KMH = 10; 
+const STATION_RADIUS_METERS = 500; // 500m arrival radius
+const MIN_TRAIN_SPEED_KMH = 5;
 
 async function processTrainLocationUpdate(trainDoc, lat, lng, speed, nowTimestamp) {
-    // 1. Filter out static noise (user sitting at home selecting train)
-    if (speed < MIN_TRAIN_SPEED_KMH) {
-        return {
-            delayMinutes: trainDoc.calculatedDelayMinutes,
-            nextStation: trainDoc.nextStation
-        };
-    }
-
     const stations = trainDoc.stations || [];
     if (stations.length === 0) {
         return { delayMinutes: 0, nextStation: 'Unknown' };
     }
 
-    let closestStation = null;
+    // Sort stations sequentially
+    stations.sort((a, b) => a.sequenceOrder - b.sequenceOrder);
+
+    let nearestStation = null;
     let minDistance = Infinity;
 
-    // 2. Find closest station along the route
+    // Find nearest station
     for (const station of stations) {
-        const dist = getDistanceInMeters(
-            lat,
-            lng,
-            station.location.latitude,
-            station.location.longitude
-        );
-
+        const dist = getDistanceInMeters(lat, lng, station.location.latitude, station.location.longitude);
         if (dist < minDistance) {
             minDistance = dist;
-            closestStation = station;
+            nearestStation = station;
         }
     }
 
-    // 3. Check if train is currently at/inside station radius
-    if (closestStation && minDistance <= STATION_RADIUS_METERS) {
+    let delayMinutes = trainDoc.calculatedDelayMinutes || 0;
+    let nextStationName = trainDoc.nextStation || stations[0].stationName;
+
+    // 1. Calculate Delay when inside station radius
+    if (nearestStation && minDistance <= STATION_RADIUS_METERS) {
         const now = new Date(nowTimestamp);
         const currentMinutes = now.getHours() * 60 + now.getMinutes();
-        const scheduledMinutes = parseTimeToMinutes(closestStation.scheduledArrivalTime);
+        const scheduledMinutes = parseTimeToMinutes(nearestStation.scheduledArrivalTime);
 
-        // Delay calculation (Current Time - Scheduled Time)
-        let delayMinutes = currentMinutes - scheduledMinutes;
+        let calcDelay = currentMinutes - scheduledMinutes;
+        if (calcDelay < -60) calcDelay += 1440; // Overnight fix
 
-        // Ensure negative delays (early trains) are bounded or handled
-        if (delayMinutes < -60) {
-            // Edge case: Overnight midnight rollover
-            delayMinutes += 1440;
-        }
+        delayMinutes = Math.max(0, calcDelay);
 
-        // Determine next station in sequence
-        const currentSeq = closestStation.sequenceOrder;
-        const nextStationDoc = stations.find(s => s.sequenceOrder === currentSeq + 1);
-        const nextStationName = nextStationDoc ? nextStationDoc.stationName : "Final Destination";
-
-        return {
-            delayMinutes: Math.max(0, delayMinutes), // Display 0 if on-time or early
-            nextStation: nextStationName,
-            arrivedStation: closestStation.stationName
-        };
+        // Advance next station
+        const nextSeq = nearestStation.sequenceOrder + 1;
+        const nextDoc = stations.find(s => s.sequenceOrder === nextSeq);
+        nextStationName = nextDoc ? nextDoc.stationName : "Final Destination";
+    } else if (nearestStation) {
+        // 2. Determine Next Station while train is en-route
+        // If passenger is moving towards the next stop in sequence
+        const currentSeq = nearestStation.sequenceOrder;
+        const nextDoc = stations.find(s => s.sequenceOrder === currentSeq + 1);
+        nextStationName = nextDoc ? nextDoc.stationName : nearestStation.stationName;
     }
 
     return {
-        delayMinutes: trainDoc.calculatedDelayMinutes,
-        nextStation: trainDoc.nextStation
+        delayMinutes,
+        nextStation: nextStationName
     };
 }
 
